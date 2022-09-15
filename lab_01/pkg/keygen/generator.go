@@ -1,6 +1,7 @@
 package keygen
 
 import (
+	"crypto/sha256"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -24,7 +25,8 @@ func GetKey() (string, error) {
 		return "", err
 	}
 
-	return string(key), err
+	hash := sha256.Sum256(key)
+	return string(append(key[:4], hash[:]...)), err
 }
 
 func getMacOSKey() ([]byte, error) {
@@ -38,7 +40,7 @@ func getMacOSKey() ([]byte, error) {
 }
 
 func getLinuxKey() ([]byte, error) {
-	cmd := "cat /sys/class/dmi/id/product_uuid"
+	cmd := "sudo cat /sys/class/dmi/id/product_uuid"
 	out, err := exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		return nil, err
