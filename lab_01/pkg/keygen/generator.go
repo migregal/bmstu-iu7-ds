@@ -40,8 +40,16 @@ func getMacOSKey() ([]byte, error) {
 }
 
 func getLinuxKey() ([]byte, error) {
-	cmd := "sudo cat /sys/class/dmi/id/product_uuid"
+	// needed super-user mode
+	cmd := "cat /sys/class/dmi/id/product_uuid"
 	out, err := exec.Command("bash", "-c", cmd).Output()
+	if err == nil {
+		return []byte(strings.TrimSpace(string(out))), nil
+	}
+
+	// every other user
+	cmd = "cat /var/lib/dbus/machine-id"
+	out, err = exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
 		return nil, err
 	}

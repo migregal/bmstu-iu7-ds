@@ -18,7 +18,7 @@ func main() {
 	}
 
 	if !isLicensed {
-		fmt.Println(aurora.BgRed("Program is not registered for this PC. 0borting"))
+		fmt.Println(aurora.BgRed("Program is not registered for this PC. Aborting"))
 		os.Exit(1)
 	}
 

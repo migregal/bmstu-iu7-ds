@@ -8,7 +8,7 @@ build_installer:
 
 .PHONY: install
 install: build_app build_installer
-	sudo ./install.out
+	./install.out
 
 .PHONY: clean
 clean:
