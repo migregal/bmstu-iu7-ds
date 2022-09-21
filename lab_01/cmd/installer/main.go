@@ -10,7 +10,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/logrusorgru/aurora"
 
-	"github.com/migregal/bmstu-iu7-ds/pkg/keygen"
+	"github.com/migregal/bmstu-iu7-ds/lab-01/pkg/keygen"
 )
 
 func main() {

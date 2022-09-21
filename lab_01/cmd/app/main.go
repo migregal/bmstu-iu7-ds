@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/migregal/bmstu-iu7-ds/pkg/keygen"
+	"github.com/migregal/bmstu-iu7-ds/lab-01/pkg/keygen"
 )
 
 const licenseKey = "00000000-0000-0000-0000-000000000000"

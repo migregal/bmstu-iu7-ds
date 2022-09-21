@@ -1,4 +1,4 @@
-module github.com/migregal/bmstu-iu7-ds
+module github.com/migregal/bmstu-iu7-ds/lab-01
 
 go 1.19
 
