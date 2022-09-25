@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-const maxRotorsCount = 8
+const maxRotorsCount = 32
 
 type Enigma struct {
 	rotors    []*rotor
@@ -27,7 +27,7 @@ func NewEnigma(seed int64, alphabetLen int) Enigma {
 
 	return Enigma{
 		rotors:    rotors,
-		reflector: newReflector(alphabetLen),
+		reflector: newReflector(seed, alphabetLen),
 	}
 }
 

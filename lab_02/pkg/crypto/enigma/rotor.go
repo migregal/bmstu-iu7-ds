@@ -20,8 +20,8 @@ func newRotor(seed int64, length int) *rotor {
 }
 
 func fillRotor(seed int64, length int) ([]rune, []rune) {
-	values := make([]rune, length+1)
-	for i := 0; i <= length; i++ {
+	values := make([]rune, length)
+	for i := 0; i < length; i++ {
 		values[i] = rune(i)
 	}
 
@@ -30,8 +30,8 @@ func fillRotor(seed int64, length int) ([]rune, []rune) {
 		values[i], values[j] = values[j], values[i]
 	})
 
-	reverse := make([]rune, length+1)
-	for i := 0; i <= length; i++ {
+	reverse := make([]rune, length)
+	for i := 0; i < length; i++ {
 		reverse[values[i]] = rune(i)
 	}
 
