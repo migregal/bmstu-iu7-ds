@@ -45,7 +45,7 @@ func (e *Enigma) encodeRune(data rune) rune {
 		data = e.rotors[i].getStraight(data)
 	}
 
-	data = e.reflector.Values[data]
+	data = e.reflector.Reflect(data)
 
 	for i := len(e.rotors) - 1; i >= 0; i-- {
 		data = e.rotors[i].getReverse(data)

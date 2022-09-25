@@ -1,12 +1,12 @@
 package enigma
 
 type reflector struct {
-	Values []rune
+	values []rune
 }
 
 func newReflector(length int) *reflector {
 	return &reflector{
-		Values: fillReflector(length),
+		values: fillReflector(length),
 	}
 }
 
@@ -16,4 +16,8 @@ func fillReflector(length int) []rune {
 		values[i] = rune(length - i)
 	}
 	return values
+}
+
+func (r reflector) Reflect(b rune) rune {
+	return r.values[b]
 }
