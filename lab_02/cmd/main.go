@@ -31,15 +31,15 @@ func main() {
 	}
 
 	seed := time.Now().UnixNano()
-	alphabetSize := math.MaxUint16
-	enigmaMachine := enigma.NewEnigma(seed, alphabetSize)
+	alphabetSize := math.MaxUint8
+	enigmaMachine := enigma.NewEnigma(seed, alphabetSize, 8)
 
-	encoded := enigmaMachine.Cipher([]rune(string(data)))
-	if err = os.WriteFile(fout, []byte(string(encoded)), 0644); err != nil {
+	encoded := enigmaMachine.Cipher(data)
+	if err = os.WriteFile(fout, encoded, 0644); err != nil {
 		log.Fatalln(err)
 	}
 
-	enigmaMachine = enigma.NewEnigma(seed, alphabetSize)
+	enigmaMachine = enigma.NewEnigma(seed, alphabetSize, 8)
 	decoded := enigmaMachine.Decipher(encoded)
 	if err = os.WriteFile(check, []byte(string(decoded)), 0644); err != nil {
 		log.Fatalln(err)

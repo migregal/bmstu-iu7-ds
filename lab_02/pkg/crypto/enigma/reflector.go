@@ -5,7 +5,7 @@ import (
 )
 
 type reflector struct {
-	values []rune
+	values []byte
 }
 
 func newReflector(seed int64, length int) *reflector {
@@ -14,7 +14,7 @@ func newReflector(seed int64, length int) *reflector {
 	}
 }
 
-func fillReflector(seed int64, length int) []rune {
+func fillReflector(seed int64, length int) []byte {
 	rand.Seed(seed)
 
 	stable := -1
@@ -22,31 +22,31 @@ func fillReflector(seed int64, length int) []rune {
 		stable = rand.Int() % (length)
 	}
 
-	values := make([]rune, length)
+	values := make([]byte, length)
 	for i := range values {
-		values[i] = rune(length)
+		values[i] = byte(length)
 	}
 	for i := 0; i < length; i++ {
 		if i == stable {
-			values[i] = rune(i)
+			values[i] = byte(i)
 			continue
 		}
 
-		if values[i] != rune(length) {
+		if values[i] != byte(length) {
 			continue
 		}
 
 		x := rand.Intn(length)
 
-		for x == stable || values[x] != rune(length) {
+		for x == stable || values[x] != byte(length) {
 			x = rand.Intn(length)
 		}
-		values[i], values[x] = rune(x), rune(i)
+		values[i], values[x] = byte(x), byte(i)
 	}
 
 	return values
 }
 
-func (r reflector) Reflect(b rune) rune {
+func (r reflector) Reflect(b byte) byte {
 	return r.values[b]
 }

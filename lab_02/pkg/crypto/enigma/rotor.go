@@ -5,8 +5,8 @@ import (
 )
 
 type rotor struct {
-	values    []rune
-	reverse   []rune
+	values    []byte
+	reverse   []byte
 	rotations int
 }
 
@@ -19,10 +19,10 @@ func newRotor(seed int64, length int) *rotor {
 	}
 }
 
-func fillRotor(seed int64, length int) ([]rune, []rune) {
-	values := make([]rune, length)
+func fillRotor(seed int64, length int) ([]byte, []byte) {
+	values := make([]byte, length)
 	for i := 0; i < length; i++ {
-		values[i] = rune(i)
+		values[i] = byte(i)
 	}
 
 	rand.Seed(seed)
@@ -30,9 +30,9 @@ func fillRotor(seed int64, length int) ([]rune, []rune) {
 		values[i], values[j] = values[j], values[i]
 	})
 
-	reverse := make([]rune, length)
+	reverse := make([]byte, length)
 	for i := 0; i < length; i++ {
-		reverse[values[i]] = rune(i)
+		reverse[values[i]] = byte(i)
 	}
 
 	return values, reverse
@@ -43,12 +43,12 @@ func (r *rotor) rotate() bool {
 	return r.rotations == 0
 }
 
-func (r *rotor) getStraight(b rune) rune {
+func (r *rotor) getStraight(b byte) byte {
 	idx := (r.rotations + int(b)) % len(r.values)
-	return rune((int(r.values[idx]) - r.rotations + len(r.values))%len(r.values))
+	return byte((int(r.values[idx]) - r.rotations + len(r.values))%len(r.values))
 }
 
-func (r *rotor) getReverse(b rune) rune {
+func (r *rotor) getReverse(b byte) byte {
 	idx := (r.rotations + int(b)) % len(r.reverse)
-	return rune((int(r.reverse[idx]) - r.rotations + len(r.reverse))%len(r.reverse))
+	return byte((int(r.reverse[idx]) - r.rotations + len(r.reverse))%len(r.reverse))
 }

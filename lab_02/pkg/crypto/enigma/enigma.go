@@ -2,10 +2,9 @@ package enigma
 
 import (
 	"math"
-	"math/rand"
 )
 
-const maxRotorsCount = 32
+const defaultMaxRotorsCount = 8
 
 type Enigma struct {
 	rotors    []*rotor
@@ -13,15 +12,12 @@ type Enigma struct {
 }
 
 func DefaultEnigma(seed int64) Enigma {
-	return NewEnigma(seed, math.MaxUint8)
+	return NewEnigma(seed, math.MaxUint8, defaultMaxRotorsCount)
 }
 
-func NewEnigma(seed int64, alphabetLen int) Enigma {
-	rand.Seed(seed)
-
-	size := rand.Int() % maxRotorsCount + 1
-	rotors := make([]*rotor, size)
-	for i := 0; i < size; i++ {
+func NewEnigma(seed int64, alphabetLen int, rotorsN int) Enigma {
+	rotors := make([]*rotor, rotorsN)
+	for i := 0; i < rotorsN; i++ {
 		rotors[i] = newRotor(seed, alphabetLen)
 	}
 
@@ -31,16 +27,16 @@ func NewEnigma(seed int64, alphabetLen int) Enigma {
 	}
 }
 
-func (e *Enigma) Cipher(data []rune) []rune {
-	ciphered := make([]rune, len(data))
+func (e *Enigma) Cipher(data []byte) []byte {
+	ciphered := make([]byte, len(data))
 	for i, b := range data {
-		ciphered[i] = e.encodeRune(b)
+		ciphered[i] = e.encodebyte(b)
 	}
 
 	return ciphered
 }
 
-func (e *Enigma) encodeRune(data rune) rune {
+func (e *Enigma) encodebyte(data byte) byte {
 	for i := range e.rotors {
 		data = e.rotors[i].getStraight(data)
 	}
@@ -60,6 +56,6 @@ func (e *Enigma) encodeRune(data rune) rune {
 	return data
 }
 
-func (e *Enigma) Decipher(data []rune) []rune {
+func (e *Enigma) Decipher(data []byte) []byte {
 	return e.Cipher(data)
 }

@@ -11,11 +11,11 @@ import (
 func TestRotor(t *testing.T) {
 	r := newRotor(time.Now().Unix(), math.MaxUint8)
 
-	require.Equal(t, 'a', r.getReverse(r.getStraight('a')))
+	require.Equal(t, byte('a'), r.getReverse(r.getStraight('a')))
 
 	for i := 0; i < 10; i++ {
 		r.rotate()
 
-		require.Equal(t, 'a', r.getReverse(r.getStraight('a')))
+		require.Equal(t, byte('a'), r.getReverse(r.getStraight('a')))
 	}
 }

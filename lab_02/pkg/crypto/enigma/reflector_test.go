@@ -11,5 +11,5 @@ import (
 func TestReflector(t *testing.T) {
 	r := newReflector(time.Now().Unix(), math.MaxUint8)
 
-	require.Equal(t, 'a', r.Reflect(r.Reflect('a')))
+	require.Equal(t, byte('a'), r.Reflect(r.Reflect('a')))
 }
