@@ -8,31 +8,36 @@ type rotor struct {
 	values    []byte
 	reverse   []byte
 	rotations int
+
+	from uint8
+	to   uint8
 }
 
-func newRotor(seed int64, length int) *rotor {
-	value, reverse := fillRotor(seed, length)
+func newRotor(seed int64, from, to uint8) *rotor {
+	value, reverse := fillRotor(seed, from, to)
 
 	return &rotor{
-		values: value,
+		values:  value,
 		reverse: reverse,
+		from:    from,
+		to:      to,
 	}
 }
 
-func fillRotor(seed int64, length int) ([]byte, []byte) {
-	values := make([]byte, length)
-	for i := 0; i < length; i++ {
-		values[i] = byte(i)
+func fillRotor(seed int64, from, to uint8) ([]byte, []byte) {
+	values := make([]byte, to-from)
+	for i := from; i < to; i++ {
+		values[i-from] = i - from
 	}
 
 	rand.Seed(seed)
-	rand.Shuffle(len(values), func(i, j int) {
+	rand.Shuffle(int(to-from), func(i, j int) {
 		values[i], values[j] = values[j], values[i]
 	})
 
-	reverse := make([]byte, length)
-	for i := 0; i < length; i++ {
-		reverse[values[i]] = byte(i)
+	reverse := make([]byte, to-from)
+	for i := from; i < to; i++ {
+		reverse[values[i-from]] = i - from
 	}
 
 	return values, reverse
@@ -44,11 +49,18 @@ func (r *rotor) rotate() bool {
 }
 
 func (r *rotor) getStraight(b byte) byte {
-	idx := (r.rotations + int(b)) % len(r.values)
-	return byte((int(r.values[idx]) - r.rotations + len(r.values))%len(r.values))
+	return extractFromSlice(b, r.values, r.from,r.to,r.rotations)
 }
 
 func (r *rotor) getReverse(b byte) byte {
-	idx := (r.rotations + int(b)) % len(r.reverse)
-	return byte((int(r.reverse[idx]) - r.rotations + len(r.reverse))%len(r.reverse))
+	return extractFromSlice(b, r.reverse, r.from,r.to,r.rotations)
+}
+
+func extractFromSlice(b byte, data []byte, from, to uint8, rotations int) byte {
+	if b < from || b > to {
+		return b
+	}
+
+	idx := (rotations + int(b-from)) % len(data)
+	return byte((int(data[idx])-rotations+len(data))%len(data)) + from
 }

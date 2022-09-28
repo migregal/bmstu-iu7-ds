@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"time"
 
@@ -31,15 +30,14 @@ func main() {
 	}
 
 	seed := time.Now().UnixNano()
-	alphabetSize := math.MaxUint8
-	enigmaMachine := enigma.NewEnigma(seed, alphabetSize, 8)
+	enigmaMachine := enigma.DefaultEnigma(seed)
 
 	encoded := enigmaMachine.Cipher(data)
 	if err = os.WriteFile(fout, encoded, 0644); err != nil {
 		log.Fatalln(err)
 	}
 
-	enigmaMachine = enigma.NewEnigma(seed, alphabetSize, 8)
+	enigmaMachine = enigma.DefaultEnigma(seed)
 	decoded := enigmaMachine.Decipher(encoded)
 	if err = os.WriteFile(check, []byte(string(decoded)), 0644); err != nil {
 		log.Fatalln(err)

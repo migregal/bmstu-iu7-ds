@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-const defaultMaxRotorsCount = 8
+const defaultRotorsCount = 3
 
 type Enigma struct {
 	rotors    []*rotor
@@ -12,18 +12,18 @@ type Enigma struct {
 }
 
 func DefaultEnigma(seed int64) Enigma {
-	return NewEnigma(seed, math.MaxUint8, defaultMaxRotorsCount)
+	return NewEnigma(seed, 0, math.MaxUint8, defaultRotorsCount)
 }
 
-func NewEnigma(seed int64, alphabetLen int, rotorsN int) Enigma {
+func NewEnigma(seed int64, from, to uint8, rotorsN int) Enigma {
 	rotors := make([]*rotor, rotorsN)
 	for i := 0; i < rotorsN; i++ {
-		rotors[i] = newRotor(seed, alphabetLen)
+		rotors[i] = newRotor(seed, from, to)
 	}
 
 	return Enigma{
 		rotors:    rotors,
-		reflector: newReflector(seed, alphabetLen),
+		reflector: newReflector(seed, from, to),
 	}
 }
 

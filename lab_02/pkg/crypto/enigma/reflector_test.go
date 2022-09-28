@@ -9,7 +9,7 @@ import (
 )
 
 func TestReflector(t *testing.T) {
-	r := newReflector(time.Now().Unix(), math.MaxUint8)
+	r := newReflector(time.Now().Unix(), 0, math.MaxUint8)
 
 	require.Equal(t, byte('a'), r.Reflect(r.Reflect('a')))
 }

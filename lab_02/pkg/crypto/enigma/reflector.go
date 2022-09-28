@@ -6,47 +6,58 @@ import (
 
 type reflector struct {
 	values []byte
+
+	from uint8
+	to   uint8
 }
 
-func newReflector(seed int64, length int) *reflector {
+func newReflector(seed int64, from, to uint8) *reflector {
 	return &reflector{
-		values: fillReflector(seed, length),
+		values: fillReflector(seed, from, to),
+		from: from,
+		to: to,
 	}
 }
 
-func fillReflector(seed int64, length int) []byte {
+func fillReflector(seed int64, from, to uint8) []byte {
 	rand.Seed(seed)
+
+	length := to - from
 
 	stable := -1
 	if length%2 != 0 {
-		stable = rand.Int() % (length)
+		stable = rand.Int() % int(length)
 	}
 
 	values := make([]byte, length)
 	for i := range values {
-		values[i] = byte(length)
+		values[i] = length
 	}
-	for i := 0; i < length; i++ {
-		if i == stable {
-			values[i] = byte(i)
+	for i := uint8(0); i < length; i++ {
+		if stable != -1 && i == uint8(stable) {
+			values[i] = i
 			continue
 		}
 
-		if values[i] != byte(length) {
+		if values[i] != length {
 			continue
 		}
 
-		x := rand.Intn(length)
+		x := uint8(rand.Uint32() % uint32(length))
 
-		for x == stable || values[x] != byte(length) {
-			x = rand.Intn(length)
+		for (stable != -1 && x == uint8(stable)) || values[x] != length {
+			x = uint8(rand.Uint32() % uint32(length))
 		}
-		values[i], values[x] = byte(x), byte(i)
+		values[i], values[x] = x, i
 	}
 
 	return values
 }
 
 func (r reflector) Reflect(b byte) byte {
-	return r.values[b]
+	if b < r.from || b > r.to {
+		return b
+	}
+
+	return r.values[b-r.from]+r.from
 }
