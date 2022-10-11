@@ -4,16 +4,16 @@ import (
 	"strings"
 )
 
-func Encrypt(data []byte, keys []string) []byte {
+const missingPlaceholder rune = 0
+
+func Cipher(data []byte, keys []string) []byte {
 	var (
 		res    string
 		chunks = getChunks(string(data), 8)
 	)
 
 	for _, chunk := range chunks {
-		binaryMessage := StringToBinary(chunk)
-		binarySlice := strings.Split(binaryMessage, "")
-		binaryIP := ip(binarySlice)
+		binaryIP := *(*[64]string)(ip(StringToBinSlice(chunk)))
 		l16, r16 := Rounds(binaryIP, keys, false)
 		lr16 := append(r16, l16...)
 		res += strings.Join(ipl1(lr16), "")
@@ -22,18 +22,28 @@ func Encrypt(data []byte, keys []string) []byte {
 	return []byte(res)
 }
 
-func Decrypt(data []byte, keys []string) []byte {
+func Decipher(data []byte, keys []string) []byte {
 	var (
 		res    string
 		chunks = getChunks(string(data), 64)
 	)
 
-	for _, chunk := range chunks {
+	for i, chunk := range chunks {
 		binarySlice := strings.Split(chunk, "")
-		binaryIP := ip(binarySlice)
+		binaryIP := *(*[64]string)(ip(binarySlice))
 		l16, r16 := Rounds(binaryIP, keys, true)
 		lr16 := append(r16, l16...)
-		res += ToString(strings.Join(ipl1(lr16), ""))
+
+		data := ToString(strings.Join(ipl1(lr16), ""))
+		if i == len(chunks)-1 {
+			j := len(data) - 1
+			for ; j > 0 && rune(data[j]) == missingPlaceholder; j-- {
+			}
+
+			data = data[:j]
+		}
+
+		res += data
 	}
 
 	return []byte(res)
@@ -66,7 +76,7 @@ func getChunks(s string, chunkSize int) []string {
 	if chunkSize >= len(s) {
 		chunk := []rune(s)
 		for len(chunk) < chunkSize {
-			chunk = append(chunk, 0)
+			chunk = append(chunk, missingPlaceholder)
 		}
 
 		return []string{string(chunk)}
@@ -85,7 +95,7 @@ func getChunks(s string, chunkSize int) []string {
 
 	if len > 0 {
 		for len < chunkSize {
-			chunk[len] = 0
+			chunk[len] = missingPlaceholder
 			len++
 		}
 		chunks = append(chunks, string(chunk[:len]))

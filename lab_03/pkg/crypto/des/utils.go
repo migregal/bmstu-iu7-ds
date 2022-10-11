@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 )
 
 func CompleteKey(key string) string {
@@ -19,6 +20,10 @@ func StringToBinary(s string) (res string) {
 		res = fmt.Sprintf("%s%.8b", res, c)
 	}
 	return res
+}
+
+func StringToBinSlice(s string) []string {
+	return strings.Split(StringToBinary(s), "")
 }
 
 func ToString(s string) (res string) {

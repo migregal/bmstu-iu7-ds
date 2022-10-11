@@ -2,12 +2,10 @@ package des
 
 import "strings"
 
-func GenerateKeys(str string) (keys []string) {
-	initialKey := StringToBinary(str)
-	initialKeySlice := strings.Split(initialKey, "")
-	leftBlock, rightBlock := pc1(initialKeySlice)
+var lsIndex = []int{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1}
 
-	lsIndex := []int{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1}
+func GenerateKeys(str string) (keys []string) {
+	leftBlock, rightBlock := pc1(StringToBinSlice(str))
 
 	for i := 0; i < 16; i++ {
 		leftBlock = leftShift(leftBlock, lsIndex[i])
@@ -43,26 +41,8 @@ func pc2(s []string) []string {
 }
 
 func leftShift(s []string, i int) []string {
-	if i == 1 {
-		first := s[0]
-		for x := range s {
-			if x == len(s)-1 {
-				s[x] = first
-			} else {
-				s[x] = s[x+1]
-			}
-		}
-	} else if i == 2 {
-		firsts := []string{s[0], s[1]}
-		for x := range s {
-			if x == len(s)-2 {
-				s[x] = firsts[0]
-			} else if x == len(s)-1 {
-				s[x] = firsts[1]
-			} else {
-				s[x] = s[x+2]
-			}
-		}
+	for j := 0; j < i%len(s); j++ {
+		s = append([]string{s[len(s)-1]}, s[:len(s)-1]...)
 	}
 
 	return s
