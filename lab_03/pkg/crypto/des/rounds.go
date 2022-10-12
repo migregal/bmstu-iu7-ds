@@ -61,10 +61,11 @@ var (
 	}
 )
 
-func Rounds(binaryIP [64]string, keys []string, decrypt bool) (l16 []string, r16 []string) {
+func Rounds(binaryIP []string, keys []string, decrypt bool) (l16 []string, r16 []string) {
 	leftBlock, rightBlock := binaryIP[:32], binaryIP[32:]
 
 	for i := range keys {
+		// feistel -------------------------------------------------------------
 		rightBlockExpanded := expansion(rightBlock)
 		rightBlockExpandedInt, err := strconv.ParseUint(strings.Join(rightBlockExpanded, ""), 2, 0)
 		if err != nil {
@@ -82,8 +83,10 @@ func Rounds(binaryIP [64]string, keys []string, decrypt bool) (l16 []string, r16
 		}
 
 		tmpUint := rightBlockExpandedInt ^ keyInt
-		rightBlockExpanded = strings.Split(fmt.Sprintf("%.48b", tmpUint), "")
-		tmp := permutationP(substitution(rightBlockExpanded))
+		z := strings.Split(fmt.Sprintf("%.48b", tmpUint), "")
+		tmp := permutationP(substitution(z))
+		// feistel ^------------------------------------------------------------
+
 		tmpUint, err = strconv.ParseUint(strings.Join(tmp, ""), 2, 0)
 		if err != nil {
 			log.Fatal(err)
