@@ -30,12 +30,9 @@ func main() {
 
 	key = des.CompleteKey(key)
 	if decrypt {
-		decrypted := des.Decipher(data, des.GenerateKeys(key))
-		if err := os.WriteFile(output, decrypted, 0644); err != nil {
-			log.Fatalf("Can't write decrypted data, error is: %s", err)
-		}
+		decrypted := des.Decipher(key, data)
 	} else {
-		encrypted := des.Cipher(data, des.GenerateKeys(key))
+		encrypted := des.Cipher(key, data)
 		if err := os.WriteFile(output, encrypted, 0644); err != nil {
 			log.Fatalf("Can't write encrypted data, error is: %s", err)
 		}

@@ -7,7 +7,9 @@ import (
 
 const missingPlaceholder rune = 0
 
-func Cipher(data []byte, keys []string) []byte {
+func Cipher(key string, data []byte) []byte {
+	keys := GenerateKeys(key)
+
 	var (
 		res    string
 		chunks = getChunks(string(data), 8)
@@ -30,7 +32,9 @@ func Cipher(data []byte, keys []string) []byte {
 	return output
 }
 
-func Decipher(data []byte, keys []string) []byte {
+func Decipher(key string, data []byte) []byte {
+	keys := GenerateKeys(key)
+
 	input := []byte{}
 	for _, d := range data {
 		for i := 7; i >= 0; i-- {
