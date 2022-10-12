@@ -1,6 +1,7 @@
 package des
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -18,14 +19,28 @@ func Cipher(data []byte, keys []string) []byte {
 		lr16 := append(r16, l16...)
 		res += strings.Join(ipl1(lr16), "")
 	}
+	binRes := []byte(res)
 
-	return []byte(res)
+	output := []byte{}
+	for i := 0; i < len(binRes); i += 8 {
+		b, _ := strconv.ParseUint(string(binRes[i:i+8]), 2, 64)
+		output = append(output, byte(b))
+	}
+
+	return output
 }
 
 func Decipher(data []byte, keys []string) []byte {
+	input := []byte{}
+	for _, d := range data {
+		for i := 7; i >= 0; i-- {
+			input = append(input, byte('0'+((d>>i)&1)))
+		}
+	}
+
 	var (
 		res    string
-		chunks = getChunks(string(data), 64)
+		chunks = getChunks(string(input), 64)
 	)
 
 	for i, chunk := range chunks {
