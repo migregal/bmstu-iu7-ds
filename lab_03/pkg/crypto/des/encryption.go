@@ -16,7 +16,7 @@ func Cipher(key string, data []byte) []byte {
 
 	var (
 		res    string
-		chunks = getChunks(string(data), 8)
+		chunks = getChunks(data, 8)
 	)
 
 	for _, chunk := range chunks {
@@ -48,7 +48,7 @@ func Decipher(key string, data []byte) []byte {
 
 	var (
 		res    string
-		chunks = getChunks(string(input), 64)
+		chunks = getChunks(input, 64)
 	)
 
 	for _, chunk := range chunks {
@@ -87,13 +87,10 @@ func ipl1(s []string) []string {
 		s[32], s[0], s[40], s[8], s[48], s[16], s[56], s[24]}
 }
 
-func getChunks(s string, chunkSize int) []string {
-	chunk := make([]rune, chunkSize)
+func getChunks(s []byte, chunkSize int) []string {
+	chunk := make([]byte, chunkSize)
 	if chunkSize >= len(s) {
-		chunk := []rune(s)
-		for len(chunk) < chunkSize {
-			chunk = append(chunk, missingPlaceholder)
-		}
+		chunk := s
 
 		return []string{string(chunk)}
 	}

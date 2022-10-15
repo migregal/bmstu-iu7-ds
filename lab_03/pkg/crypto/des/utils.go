@@ -5,20 +5,19 @@ import (
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
 )
 
 func CompleteKey(key string) string {
-	for len(key)%8 > 0 {
-		key += "."
-	}
-
-	return key
+	return string(pkcs5.PKCS5Padding([]byte(key), 8))
 }
 
 func StringToBinary(s string) (res string) {
-	for _, c := range s {
+	for _, c := range []byte(s) {
 		res = fmt.Sprintf("%s%.8b", res, c)
 	}
+
 	return res
 }
 
@@ -29,20 +28,21 @@ func StringToBinSlice(s string) []string {
 func ToString(s string) (res string) {
 	arr := make([]string, 8)
 	j := 0
-	for i, c := range s {
+	for i, c := range []byte(s) {
 		if i%8 == 0 && i != 0 {
 			j++
 		}
 		arr[j] += string(c)
 	}
 
-	for _, a := range arr {
+	out := make([]byte, len(arr))
+	for i, a := range arr {
 		tmp, err := strconv.ParseUint(a, 2, 0)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res += string(tmp)
+		out[i] = byte(tmp)
 	}
 
-	return res
+	return string(out)
 }
