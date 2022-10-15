@@ -3,11 +3,15 @@ package des
 import (
 	"strconv"
 	"strings"
+
+	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
 )
 
 const missingPlaceholder rune = 0
 
 func Cipher(key string, data []byte) []byte {
+	data = pkcs5.PKCS5Padding(data, 8)
+
 	keys := GenerateKeys(key)
 
 	var (
@@ -47,25 +51,18 @@ func Decipher(key string, data []byte) []byte {
 		chunks = getChunks(string(input), 64)
 	)
 
-	for i, chunk := range chunks {
+	for _, chunk := range chunks {
 		binarySlice := strings.Split(chunk, "")
 		binaryIP := ip(binarySlice)
 		l16, r16 := Rounds(binaryIP, keys, true)
 		lr16 := append(r16, l16...)
 
 		data := ToString(strings.Join(ipl1(lr16), ""))
-		if i == len(chunks)-1 {
-			j := len(data) - 1
-			for ; j > 0 && rune(data[j]) == missingPlaceholder; j-- {
-			}
-
-			data = data[:j]
-		}
 
 		res += data
 	}
 
-	return []byte(res)
+	return pkcs5.PKCS5UnPadding([]byte(res))
 }
 
 func ip(s []string) []string {
@@ -110,14 +107,6 @@ func getChunks(s string, chunkSize int) []string {
 			chunks = append(chunks, string(chunk))
 			len = 0
 		}
-	}
-
-	if len > 0 {
-		for len < chunkSize {
-			chunk[len] = missingPlaceholder
-			len++
-		}
-		chunks = append(chunks, string(chunk[:len]))
 	}
 
 	return chunks
