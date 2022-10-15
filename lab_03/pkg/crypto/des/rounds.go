@@ -2,7 +2,6 @@ package des
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -61,7 +60,11 @@ var (
 	}
 )
 
-func Rounds(binaryIP []string, keys []string, decrypt bool) (l16 []string, r16 []string) {
+func Rounds(
+	binaryIP []string,
+	keys []string,
+	decrypt bool,
+) (l16 []string, r16 []string, err error) {
 	leftBlock, rightBlock := binaryIP[:32], binaryIP[32:]
 
 	for i := range keys {
@@ -69,7 +72,7 @@ func Rounds(binaryIP []string, keys []string, decrypt bool) (l16 []string, r16 [
 		rightBlockExpanded := expansion(rightBlock)
 		rightBlockExpandedInt, err := strconv.ParseUint(strings.Join(rightBlockExpanded, ""), 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return nil, nil, fmt.Errorf("failed to parse right expanded block: %w", err)
 		}
 
 		var keyInt uint64
@@ -79,22 +82,29 @@ func Rounds(binaryIP []string, keys []string, decrypt bool) (l16 []string, r16 [
 			keyInt, err = strconv.ParseUint(keys[len(keys)-i-1], 2, 0)
 		}
 		if err != nil {
-			log.Fatal(err)
+			return nil, nil, fmt.Errorf("failed to parse key: %w", err)
 		}
 
 		tmpUint := rightBlockExpandedInt ^ keyInt
 		z := strings.Split(fmt.Sprintf("%.48b", tmpUint), "")
-		tmp := permutationP(substitution(z))
+
+		s, err := substitution(z)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to substitute: %w", err)
+		}
+
+		tmp := permutationP(s)
+
 		// feistel ^------------------------------------------------------------
 
 		tmpUint, err = strconv.ParseUint(strings.Join(tmp, ""), 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return nil, nil, fmt.Errorf("failed to parse feistel result: %w", err)
 		}
 
 		leftBlockInt, err := strconv.ParseUint(strings.Join(leftBlock, ""), 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return nil, nil, fmt.Errorf("failed to parse left block: %w", err)
 		}
 
 		tmpUint = tmpUint ^ leftBlockInt
@@ -104,7 +114,7 @@ func Rounds(binaryIP []string, keys []string, decrypt bool) (l16 []string, r16 [
 		rightBlock = tmp
 	}
 
-	return leftBlock, rightBlock
+	return leftBlock, rightBlock, nil
 }
 
 func expansion(s []string) []string {
@@ -116,24 +126,24 @@ func expansion(s []string) []string {
 		s[27], s[28], s[27], s[28], s[29], s[30], s[31], s[0]}
 }
 
-func substitution(s []string) []string {
+func substitution(s []string) ([]string, error) {
 	dividedBlocks := [][]string{s[:6], s[6:12], s[12:18], s[18:24], s[24:30], s[30:36], s[36:42], s[42:]}
 
 	resultString := ""
 	for i, dividedBlock := range dividedBlocks {
 		x, err := strconv.ParseUint(strings.Join(dividedBlock[1:5], ""), 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("failed to parse x coord: %w", err)
 		}
 		y, err := strconv.ParseUint(strings.Join([]string{dividedBlock[0], dividedBlock[5]}, ""), 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("failed to parse y coord: %w", err)
 		}
 
 		resultString = fmt.Sprintf("%s%.4b", resultString, substitutionMatrixesMatrix[i][x][y])
 	}
 
-	return strings.Split(resultString, "")
+	return strings.Split(resultString, ""), nil
 }
 
 func permutationP(s []string) []string {

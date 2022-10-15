@@ -7,41 +7,45 @@ import (
 	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
 )
 
-const missingPlaceholder rune = 0
+const blockSize = 8
 
-func Cipher(key string, data []byte) []byte {
-	data = pkcs5.PKCS5Padding(data, 8)
-
+func Cipher(key string, data []byte) ([]byte, error) {
 	keys := GenerateKeys(key)
+
+	data = pkcs5.PKCS5Padding(data, blockSize)
 
 	var (
 		res    string
-		chunks = getChunks(data, 8)
+		chunks = getChunks(data, blockSize)
 	)
 
 	for _, chunk := range chunks {
 		binaryIP := ip(StringToBinSlice(chunk))
-		l16, r16 := Rounds(binaryIP, keys, false)
+		l16, r16, err := Rounds(binaryIP, keys, false)
+		if err != nil {
+			return nil, err
+		}
+
 		lr16 := append(r16, l16...)
 		res += strings.Join(ipl1(lr16), "")
 	}
 	binRes := []byte(res)
 
 	output := []byte{}
-	for i := 0; i < len(binRes); i += 8 {
-		b, _ := strconv.ParseUint(string(binRes[i:i+8]), 2, 64)
+	for i := 0; i < len(binRes); i += blockSize {
+		b, _ := strconv.ParseUint(string(binRes[i:i+blockSize]), 2, 64)
 		output = append(output, byte(b))
 	}
 
-	return output
+	return output, nil
 }
 
-func Decipher(key string, data []byte) []byte {
+func Decipher(key string, data []byte) ([]byte, error) {
 	keys := GenerateKeys(key)
 
 	input := []byte{}
 	for _, d := range data {
-		for i := 7; i >= 0; i-- {
+		for i := blockSize-1; i >= 0; i-- {
 			input = append(input, byte('0'+((d>>i)&1)))
 		}
 	}
@@ -54,15 +58,22 @@ func Decipher(key string, data []byte) []byte {
 	for _, chunk := range chunks {
 		binarySlice := strings.Split(chunk, "")
 		binaryIP := ip(binarySlice)
-		l16, r16 := Rounds(binaryIP, keys, true)
+		l16, r16, err := Rounds(binaryIP, keys, true)
+		if err != nil {
+			return nil, err
+		}
+
 		lr16 := append(r16, l16...)
 
-		data := ToString(strings.Join(ipl1(lr16), ""))
+		data, err := ToString(strings.Join(ipl1(lr16), ""))
+		if err != nil {
+			return nil, err
+		}
 
 		res += data
 	}
 
-	return pkcs5.PKCS5UnPadding([]byte(res))
+	return pkcs5.PKCS5UnPadding([]byte(res)), nil
 }
 
 func ip(s []string) []string {
@@ -90,16 +101,13 @@ func ipl1(s []string) []string {
 func getChunks(s []byte, chunkSize int) []string {
 	chunk := make([]byte, chunkSize)
 	if chunkSize >= len(s) {
-		chunk := s
-
-		return []string{string(chunk)}
+		return []string{string(s)}
 	}
 
 	var chunks []string
 	len := 0
 	for _, r := range s {
-		chunk[len] = r
-		len++
+		chunk[len], len = r, len+1
 		if len == chunkSize {
 			chunks = append(chunks, string(chunk))
 			len = 0

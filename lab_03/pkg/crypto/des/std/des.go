@@ -1,4 +1,4 @@
-package des
+package stddes
 
 import (
 	"crypto/cipher"

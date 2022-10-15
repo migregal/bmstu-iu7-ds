@@ -2,7 +2,6 @@ package des
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -25,13 +24,15 @@ func StringToBinSlice(s string) []string {
 	return strings.Split(StringToBinary(s), "")
 }
 
-func ToString(s string) (res string) {
-	arr := make([]string, 8)
-	j := 0
+func ToString(s string) (string, error) {
+	arr := make([]string, blockSize)
+
+	j := -1
 	for i, c := range []byte(s) {
-		if i%8 == 0 && i != 0 {
+		if i%blockSize == 0 {
 			j++
 		}
+
 		arr[j] += string(c)
 	}
 
@@ -39,10 +40,11 @@ func ToString(s string) (res string) {
 	for i, a := range arr {
 		tmp, err := strconv.ParseUint(a, 2, 0)
 		if err != nil {
-			log.Fatal(err)
+			return "", err
 		}
+
 		out[i] = byte(tmp)
 	}
 
-	return string(out)
+	return string(out), nil
 }
