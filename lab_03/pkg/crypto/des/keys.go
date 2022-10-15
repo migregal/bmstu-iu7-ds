@@ -5,7 +5,7 @@ import "strings"
 var lsIndex = []int{1, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1}
 
 func GenerateKeys(str string) (keys []string) {
-	leftBlock, rightBlock := pc1(StringToBinSlice(str))
+	leftBlock, rightBlock := pc1(stringToBinSlice(str))
 
 	for i := 0; i < 16; i++ {
 		leftBlock = leftShift(leftBlock, lsIndex[i])

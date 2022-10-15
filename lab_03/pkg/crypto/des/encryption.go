@@ -20,8 +20,8 @@ func Cipher(key string, data []byte) ([]byte, error) {
 	)
 
 	for _, chunk := range chunks {
-		binaryIP := ip(StringToBinSlice(chunk))
-		l16, r16, err := Rounds(binaryIP, keys, false)
+		binaryIP := ip(stringToBinSlice(chunk))
+		l16, r16, err := rounds(binaryIP, keys, false)
 		if err != nil {
 			return nil, err
 		}
@@ -58,14 +58,14 @@ func Decipher(key string, data []byte) ([]byte, error) {
 	for _, chunk := range chunks {
 		binarySlice := strings.Split(chunk, "")
 		binaryIP := ip(binarySlice)
-		l16, r16, err := Rounds(binaryIP, keys, true)
+		l16, r16, err := rounds(binaryIP, keys, true)
 		if err != nil {
 			return nil, err
 		}
 
 		lr16 := append(r16, l16...)
 
-		data, err := ToString(strings.Join(ipl1(lr16), ""))
+		data, err := soString(strings.Join(ipl1(lr16), ""))
 		if err != nil {
 			return nil, err
 		}

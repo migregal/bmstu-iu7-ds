@@ -12,7 +12,7 @@ func CompleteKey(key string) string {
 	return string(pkcs5.PKCS5Padding([]byte(key), 8))
 }
 
-func StringToBinary(s string) (res string) {
+func stringToBinary(s string) (res string) {
 	for _, c := range []byte(s) {
 		res = fmt.Sprintf("%s%.8b", res, c)
 	}
@@ -20,11 +20,11 @@ func StringToBinary(s string) (res string) {
 	return res
 }
 
-func StringToBinSlice(s string) []string {
-	return strings.Split(StringToBinary(s), "")
+func stringToBinSlice(s string) []string {
+	return strings.Split(stringToBinary(s), "")
 }
 
-func ToString(s string) (string, error) {
+func soString(s string) (string, error) {
 	arr := make([]string, blockSize)
 
 	j := -1
