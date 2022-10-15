@@ -2,8 +2,8 @@ package des
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
+
+	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/types/bitvec"
 )
 
 var (
@@ -61,16 +61,16 @@ var (
 )
 
 func feistel(
-	mr []string,
+	mr []bitvec.BitVec,
 	key uint64,
-) ([]string, error) {
+) ([]bitvec.BitVec, error) {
 	eMR := expansion(mr)
-	eMRInt, err := strconv.ParseUint(strings.Join(eMR, ""), 2, 0)
+	eMRInt, err := bitvec.ToUint(bitvec.Join(eMR, ""), 2, 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse right expanded block: %w", err)
 	}
 
-	z := strings.Split(fmt.Sprintf("%.48b", eMRInt^key), "")
+	z := bitvec.Split(bitvec.BitVec(fmt.Sprintf("%.48b", eMRInt^key)), "")
 
 	s, err := substitution(z)
 	if err != nil {
@@ -80,8 +80,8 @@ func feistel(
 	return permutationP(s), nil
 }
 
-func expansion(s []string) []string {
-	return []string{s[31], s[0], s[1], s[2], s[3], s[4], s[3], s[4],
+func expansion(s []bitvec.BitVec) []bitvec.BitVec {
+	return []bitvec.BitVec{s[31], s[0], s[1], s[2], s[3], s[4], s[3], s[4],
 		s[5], s[6], s[7], s[8], s[7], s[8], s[9], s[10],
 		s[11], s[12], s[11], s[12], s[13], s[14], s[15], s[16],
 		s[15], s[16], s[17], s[18], s[19], s[20], s[19], s[20],
@@ -89,28 +89,28 @@ func expansion(s []string) []string {
 		s[27], s[28], s[27], s[28], s[29], s[30], s[31], s[0]}
 }
 
-func substitution(s []string) ([]string, error) {
-	dividedBlocks := [][]string{s[:6], s[6:12], s[12:18], s[18:24], s[24:30], s[30:36], s[36:42], s[42:]}
+func substitution(s []bitvec.BitVec) ([]bitvec.BitVec, error) {
+	dividedBlocks := [][]bitvec.BitVec{s[:6], s[6:12], s[12:18], s[18:24], s[24:30], s[30:36], s[36:42], s[42:]}
 
-	resultString := ""
+	resultString := bitvec.BitVec("")
 	for i, dividedBlock := range dividedBlocks {
-		x, err := strconv.ParseUint(strings.Join(dividedBlock[1:5], ""), 2, 0)
+		x, err := bitvec.ToUint(bitvec.Join(dividedBlock[1:5], ""), 2, 0)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse x coord: %w", err)
 		}
-		y, err := strconv.ParseUint(strings.Join([]string{dividedBlock[0], dividedBlock[5]}, ""), 2, 0)
+		y, err := bitvec.ToUint(bitvec.Join([]bitvec.BitVec{dividedBlock[0], dividedBlock[5]}, ""), 2, 0)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse y coord: %w", err)
 		}
 
-		resultString = fmt.Sprintf("%s%.4b", resultString, substitutionMatrixesMatrix[i][x][y])
+		resultString = bitvec.BitVec(fmt.Sprintf("%s%.4b", resultString, substitutionMatrixesMatrix[i][x][y]))
 	}
 
-	return strings.Split(resultString, ""), nil
+	return bitvec.Split(resultString, ""), nil
 }
 
-func permutationP(s []string) []string {
-	return []string{s[15], s[6], s[19], s[20], s[28], s[11], s[27], s[16],
+func permutationP(s []bitvec.BitVec) []bitvec.BitVec {
+	return []bitvec.BitVec{s[15], s[6], s[19], s[20], s[28], s[11], s[27], s[16],
 		s[0], s[14], s[22], s[25], s[4], s[17], s[30], s[9],
 		s[1], s[7], s[23], s[13], s[31], s[26], s[2], s[8],
 		s[18], s[12], s[29], s[5], s[21], s[10], s[3], s[24]}

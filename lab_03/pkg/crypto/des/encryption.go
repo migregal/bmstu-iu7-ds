@@ -1,10 +1,8 @@
 package des
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
+	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/types/bitvec"
 )
 
 const blockSize = 8
@@ -15,7 +13,7 @@ func Cipher(key string, data []byte) ([]byte, error) {
 	data = pkcs5.PKCS5Padding(data, blockSize)
 
 	var (
-		res    string
+		res    bitvec.BitVec
 		chunks = getChunks(data, blockSize)
 	)
 
@@ -27,13 +25,13 @@ func Cipher(key string, data []byte) ([]byte, error) {
 		}
 
 		lr16 := append(r16, l16...)
-		res += strings.Join(ipl1(lr16), "")
+		res += bitvec.Join(ipl1(lr16), "")
 	}
 	binRes := []byte(res)
 
 	output := []byte{}
 	for i := 0; i < len(binRes); i += blockSize {
-		b, _ := strconv.ParseUint(string(binRes[i:i+blockSize]), 2, 64)
+		b, _ := bitvec.ToUint(bitvec.BitVec(binRes[i:i+blockSize]), 2, 64)
 		output = append(output, byte(b))
 	}
 
@@ -56,7 +54,7 @@ func Decipher(key string, data []byte) ([]byte, error) {
 	)
 
 	for _, chunk := range chunks {
-		binarySlice := strings.Split(chunk, "")
+		binarySlice := bitvec.Split(chunk, "")
 		binaryIP := ip(binarySlice)
 		l16, r16, err := rounds(binaryIP, keys, true)
 		if err != nil {
@@ -65,7 +63,7 @@ func Decipher(key string, data []byte) ([]byte, error) {
 
 		lr16 := append(r16, l16...)
 
-		data, err := soString(strings.Join(ipl1(lr16), ""))
+		data, err := toString(bitvec.Join(ipl1(lr16), ""))
 		if err != nil {
 			return nil, err
 		}
@@ -76,8 +74,8 @@ func Decipher(key string, data []byte) ([]byte, error) {
 	return pkcs5.PKCS5UnPadding([]byte(res)), nil
 }
 
-func ip(s []string) []string {
-	return []string{s[57], s[49], s[41], s[33], s[25], s[17], s[9], s[1],
+func ip(s []bitvec.BitVec) []bitvec.BitVec {
+	return []bitvec.BitVec{s[57], s[49], s[41], s[33], s[25], s[17], s[9], s[1],
 		s[59], s[51], s[43], s[35], s[27], s[19], s[11], s[3],
 		s[61], s[53], s[45], s[37], s[29], s[21], s[13], s[5],
 		s[63], s[55], s[47], s[39], s[31], s[23], s[15], s[7],
@@ -87,8 +85,8 @@ func ip(s []string) []string {
 		s[62], s[54], s[46], s[38], s[30], s[22], s[14], s[6]}
 }
 
-func ipl1(s []string) []string {
-	return []string{s[39], s[7], s[47], s[15], s[55], s[23], s[63], s[31],
+func ipl1(s []bitvec.BitVec) []bitvec.BitVec {
+	return []bitvec.BitVec{s[39], s[7], s[47], s[15], s[55], s[23], s[63], s[31],
 		s[38], s[6], s[46], s[14], s[54], s[22], s[62], s[30],
 		s[37], s[5], s[45], s[13], s[53], s[21], s[61], s[29],
 		s[36], s[4], s[44], s[12], s[52], s[20], s[60], s[28],
@@ -98,18 +96,18 @@ func ipl1(s []string) []string {
 		s[32], s[0], s[40], s[8], s[48], s[16], s[56], s[24]}
 }
 
-func getChunks(s []byte, chunkSize int) []string {
+func getChunks(s []byte, chunkSize int) []bitvec.BitVec {
 	chunk := make([]byte, chunkSize)
 	if chunkSize >= len(s) {
-		return []string{string(s)}
+		return []bitvec.BitVec{bitvec.BitVec(s)}
 	}
 
-	var chunks []string
+	var chunks []bitvec.BitVec
 	len := 0
 	for _, r := range s {
 		chunk[len], len = r, len+1
 		if len == chunkSize {
-			chunks = append(chunks, string(chunk))
+			chunks = append(chunks, bitvec.BitVec(chunk))
 			len = 0
 		}
 	}

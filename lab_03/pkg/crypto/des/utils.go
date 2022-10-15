@@ -3,28 +3,35 @@ package des
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
+	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/types/bitvec"
 )
 
 func CompleteKey(key string) string {
 	return string(pkcs5.PKCS5Padding([]byte(key), 8))
 }
 
-func stringToBinary(s string) (res string) {
+func stringToBinary(s bitvec.BitVec) (res bitvec.BitVec) {
 	for _, c := range []byte(s) {
-		res = fmt.Sprintf("%s%.8b", res, c)
+		res = bitvec.BitVec(fmt.Sprintf("%s%.8b", res, c))
 	}
 
 	return res
 }
 
-func stringToBinSlice(s string) []string {
-	return strings.Split(stringToBinary(s), "")
+func stringToBinSlice(s bitvec.BitVec) []bitvec.BitVec {
+	tmp := bitvec.Split(stringToBinary(s), "")
+	res := make([]bitvec.BitVec, len(tmp))
+
+	for i := range tmp {
+		res[i] = bitvec.BitVec(tmp[i])
+	}
+
+	return res
 }
 
-func soString(s string) (string, error) {
+func toString(s bitvec.BitVec) (string, error) {
 	arr := make([]string, blockSize)
 
 	j := -1
