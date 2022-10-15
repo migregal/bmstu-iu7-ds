@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/crypto/pkcs5"
 	"github.com/migregal/bmstu-iu7-ds/lab-03/pkg/types/bitvec"
 )
 
 func CompleteKey(key string) string {
-	return string(pkcs5.PKCS5Padding([]byte(key), 8))
+	for len([]byte(key))%8 > 0 {
+		key += "."
+	}
+	return key
 }
 
 func stringToBinary(s bitvec.BitVec) (res bitvec.BitVec) {

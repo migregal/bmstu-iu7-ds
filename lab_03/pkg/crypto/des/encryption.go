@@ -43,7 +43,7 @@ func Decipher(key string, data []byte) ([]byte, error) {
 
 	input := []byte{}
 	for _, d := range data {
-		for i := blockSize-1; i >= 0; i-- {
+		for i := blockSize - 1; i >= 0; i-- {
 			input = append(input, byte('0'+((d>>i)&1)))
 		}
 	}
@@ -54,8 +54,7 @@ func Decipher(key string, data []byte) ([]byte, error) {
 	)
 
 	for _, chunk := range chunks {
-		binarySlice := bitvec.Split(chunk, "")
-		binaryIP := ip(binarySlice)
+		binaryIP := ip(bitvec.Split(chunk, ""))
 		l16, r16, err := rounds(binaryIP, keys, true)
 		if err != nil {
 			return nil, err
