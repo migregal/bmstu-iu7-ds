@@ -4,13 +4,10 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/migregal/bmstu-iu7-ds/lab_04/pkg/rsa"
 
 	"crypto/rand"
-	rsa2 "crypto/rsa"
 )
 
 var (
@@ -30,14 +27,12 @@ func init() {
 func main() {
 	flag.Parse()
 
-	rsa2.GenerateKey(rand.Reader, 2048)
-
 	if toGenerate && toDecrypt {
-		log.Fatalln("Can't generate and decrypt file at the same time")
+		log.Fatalln("can't generate and decrypt file at the same time")
 	}
 
 	if toGenerate {
-		key, err := rsa.New(0)
+		key, err := rsa.New(rand.Reader, 2048)
 		if err != nil {
 			log.Fatalf("failed to generate rsa: %s", err)
 		}
@@ -56,41 +51,41 @@ func main() {
 
 	data, err := os.ReadFile(file)
 	if err != nil {
-		log.Fatalf("Can't open file, error is: %s", err)
+		log.Fatalf("can't open file, error is: %s", err)
 	}
 
 	if toDecrypt {
 		priFile, err := os.ReadFile(priKey)
 		if err != nil {
-			log.Fatalf("Can't open private key, error is: %s", err)
+			log.Fatalf("can't open private key, error is: %s", err)
 		}
 
-		priParams := strings.Split(string(priFile), ",")
-		priN, _ := strconv.Atoi(priParams[0])
-		priD, _ := strconv.Atoi(priParams[1])
-		privateKey := rsa.NewPrivateKey(uint64(priN), uint64(priD))
+		privateKey, err := rsa.NewPrivateKey(priFile)
+		if err != nil {
+			log.Fatalf("can't parse private key, error is: %s", err)
+		}
 
 		decrypted := rsa.Decrypt(data, privateKey)
 
 		if err := os.WriteFile(output, decrypted, 0644); err != nil {
-			log.Fatalf("Can't write decrypted data, error is: %s", err)
+			log.Fatalf("can't write decrypted data, error is: %s", err)
 		}
 		return
 	}
 
 	pubFile, err := os.ReadFile(pubKey)
 	if err != nil {
-		log.Fatalf("Can't open public key, error is: %s", err)
+		log.Fatalf("can't open public key, error is: %s", err)
 	}
 
-	pubParams := strings.Split(string(pubFile), ",")
-	pubN, _ := strconv.Atoi(pubParams[0])
-	pubE, _ := strconv.Atoi(pubParams[1])
-	publicKey := rsa.NewPublicKey(uint64(pubN), uint64(pubE))
+	publicKey, err := rsa.NewPublicKey(pubFile)
+	if err != nil {
+		log.Fatalf("can't parse public key, error is: %s", err)
+	}
 
 	encrypted := rsa.Encrypt(data, publicKey)
 
 	if err := os.WriteFile(output, encrypted, 0644); err != nil {
-		log.Fatalf("Can't write encrypted data, error is: %s", err)
+		log.Fatalf("can't write encrypted data, error is: %s", err)
 	}
 }

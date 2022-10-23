@@ -1,40 +1,39 @@
 package rsa
 
 import (
+	"crypto/rand"
+	"io"
 	"math/big"
-	"strings"
 )
 
-var (
-	split = "\xff\xfe\xff"
-)
-
-func New(N uint64) (*PrivateKey, error) {
-	p, q, err := generate2PrimeNumbers(N)
-	if err != nil {
-		return nil, err
-	}
-
+func New(rnd io.Reader, bits int) (*PrivateKey, error) {
 	var key PrivateKey
-	key.N = p * q
+	key.E = 65537
 
-	fi := euler(p, q)
+	var err error
 
-	tps := sieve(fi)
-	tpsm := make(map[uint64]struct{}, len(tps))
-	for _, t := range tps {
-		tpsm[t] = struct{}{}
-	}
-	for t := range tpsm {
-		if gcd(t, p-1) == 1 && gcd(t, q-1) == 1 {
-			key.E = t
-			break
+	for {
+		// N = p * q
+		key.N = new(big.Int).SetInt64(1)
+		for i := 0; i < 2; i++ {
+			var tmp *big.Int
+			tmp, err = rand.Prime(rnd, bits/(2-i))
+			if err != nil {
+				return nil, err
+			}
+
+			key.primes = append(key.primes, tmp)
+			key.N = key.N.Mul(key.N, tmp)
 		}
-	}
 
-	for i := fi / key.E; i < fi; i++ {
-		if key.E*i%fi == 1 {
-			key.D = i
+		// fi = (p - 1) * (q - 1)
+		fi := euler(key.primes)
+
+		key.D = new(big.Int)
+		e := big.NewInt(int64(key.E))
+		ok := key.D.ModInverse(e, fi)
+
+		if ok != nil {
 			break
 		}
 	}
@@ -42,44 +41,16 @@ func New(N uint64) (*PrivateKey, error) {
 	return &key, nil
 }
 
-func Encrypt(bs []byte, key *PublicKey) (be []byte) {
-	if key == nil || key.Check() != nil {
-		return nil
-	}
+func Encrypt(bet []byte, key *PublicKey) (be []byte) {
+	m := new(big.Int).SetBytes(bet)
+	c := new(big.Int).Exp(m, big.NewInt(int64(key.E)), key.N)
 
-	bet := make([]string, 0)
-	for _, b := range bs {
-		m := new(big.Int).SetBytes([]byte{b})
-		c := new(big.Int).Exp(m, big.NewInt(int64(key.E)), big.NewInt(int64(key.N)))
-		bet = append(bet, string(c.Bytes()))
-	}
-
-	return []byte(strings.Join(bet, split))
+	return c.Bytes()
 }
 
-func Decrypt(be []byte, key *PrivateKey) (bs []byte) {
-	if key == nil || key.Check() != nil {
-		return nil
-	}
+func Decrypt(ciphertext []byte, key *PrivateKey) (bs []byte) {
+	c := new(big.Int).SetBytes(ciphertext)
+	m := new(big.Int).Exp(c, key.D, key.N)
 
-	bs = make([]byte, 0)
-	for _, b := range strings.Split(string(be), split) {
-		c := new(big.Int).SetBytes([]byte(b))
-		m := new(big.Int).Exp(c, big.NewInt(int64(key.D)), big.NewInt(int64(key.N)))
-		bs = append(bs, m.Bytes()[0])
-	}
-
-	return bs
-}
-
-func gcd(m, n uint64) uint64 {
-	if m < n {
-		m, n = n, m
-	}
-
-	if n == 0 {
-		return m
-	}
-
-	return gcd(n, m%n)
+	return m.Bytes()
 }

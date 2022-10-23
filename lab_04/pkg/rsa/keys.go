@@ -1,43 +1,73 @@
 package rsa
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+	"strconv"
+	"strings"
+)
 
 type PrivateKey struct {
 	PublicKey
-	D uint64
+	D *big.Int
+
+	primes []*big.Int
 }
 
-func NewPrivateKey(n, d uint64) *PrivateKey {
-	return &PrivateKey{PublicKey{N: n}, d}
+func NewPrivateKey(data []byte) (*PrivateKey, error) {
+	key := string(data)
+
+	params := strings.Split(key, ",")
+	if len(params) != 2 {
+		return nil, fmt.Errorf("invalid params")
+	}
+
+	n, ok := new(big.Int).SetString(params[0], 0)
+	if !ok {
+		return nil, fmt.Errorf("invalid key structure")
+	}
+
+	d, ok := new(big.Int).SetString(params[1], 0)
+	if !ok {
+		return nil, fmt.Errorf("invalid key structure")
+	}
+
+	return &PrivateKey{PublicKey{N: n}, d, nil}, nil
 }
 
 func (p PrivateKey) String() string {
-	return fmt.Sprintf("%d,%d", p.N, p.D)
-}
-
-func (p PrivateKey) Check() error {
-	if p.N < 6 || p.D < 2 {
-		return fmt.Errorf("private key error, too small params")
-	}
-	return nil
+	return fmt.Sprintf("%s,%s", p.N.String(), p.D.String())
 }
 
 type PublicKey struct {
-	N uint64
-	E uint64
+	N *big.Int
+	E int
 }
 
-func NewPublicKey(n, e uint64) *PublicKey {
-	return &PublicKey{n, e}
+func NewPublicKey(data []byte) (*PublicKey, error) {
+	key := string(data)
+	params := strings.Split(key, ",")
+	if len(params) != 2 {
+		return nil, fmt.Errorf("invalid params")
+	}
+
+	n, ok := new(big.Int).SetString(params[0], 0)
+	if !ok {
+		return nil, fmt.Errorf("invalid key structure")
+	}
+
+	e, err := strconv.Atoi(params[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid key structure")
+	}
+
+	return &PublicKey{n, e}, nil
+}
+
+func (pub *PublicKey) Size() int {
+	return (pub.N.BitLen() + 7) / 8
 }
 
 func (p PublicKey) String() string {
-	return fmt.Sprintf("%d,%d", p.N, p.E)
-}
-
-func (p PublicKey) Check() error {
-	if p.N < 6 || p.E < 2 {
-		return fmt.Errorf("public key error, too small params")
-	}
-	return nil
+	return fmt.Sprintf("%s,%d", p.N.String(), p.E)
 }
