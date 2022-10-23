@@ -1,7 +1,6 @@
 package rsa
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 )
@@ -11,8 +10,9 @@ var (
 	split = "\xff\xfe\xff"
 )
 
-func Init() {
-	rsa = New(0)
+func Init() (err error) {
+	rsa, err = New(0)
+	return
 }
 
 func Encrypt(bs []byte, pub *PublicKey) (c []byte) {
@@ -36,41 +36,15 @@ type RSA struct {
 	pri PrivateKey
 }
 
-func New(N uint64) *RSA {
-	n := generateN(N)
-
-	ps := sieve(n)
-
-	l := len(ps)
-	if l == 0 {
-		panic(fmt.Sprintf("l is 0, n=%d", n))
+func New(N uint64) (*RSA, error) {
+	p, q, err := generate2PrimeNumbers(N)
+	if err != nil {
+		return nil, err
 	}
 
-	psm := make(map[uint64]struct{}, l)
-	for _, v := range ps {
-		psm[v] = struct{}{}
-	}
-
-	p, q := uint64(0), uint64(0)
-	for k := range psm {
-		if k < 5 {
-			continue
-		}
-		p = k
-	}
-	for k := range psm {
-		if k < 5 || k == p {
-			continue
-		}
-		q = k
-	}
-
-	rsa := &RSA{
-		p: p,
-		q: q,
-		o: (p - 1) * (q - 1),
-		N: p * q,
-	}
+	n := p * q
+	fi := euler(p, q)
+	rsa := &RSA{p: p, q: q, o: fi, N: n}
 
 	tps := sieve(rsa.o)
 	tpsm := make(map[uint64]struct{}, len(tps))
@@ -94,7 +68,7 @@ func New(N uint64) *RSA {
 	rsa.pub = PublicKey{N: rsa.N, E: rsa.E}
 	rsa.pri = PrivateKey{N: rsa.N, D: rsa.D}
 
-	return rsa
+	return rsa, nil
 }
 
 func (r RSA) Encrypt(bs []byte, pub *PublicKey) (be []byte) {

@@ -39,14 +39,19 @@ func main() {
 	}
 
 	if toGenerate {
-		newRSA := rsa.New(0)
-		priGen := rsa.NewPrivateKey(newRSA.N, newRSA.D).String()
-		pubGen := rsa.NewPublicKey(newRSA.N, newRSA.E).String()
-		if err := os.WriteFile(priKey, []byte(priGen), 0644); err != nil {
-			log.Fatalf("Can't write private key, error is: %s", err)
+		newRSA, err := rsa.New(0)
+		if err != nil {
+			log.Fatalf("failed to generate rsa: %s", err)
 		}
+
+		priGen := newRSA.PrivateKey()
+		if err := os.WriteFile(priKey, []byte(priGen), 0644); err != nil {
+			log.Fatalf("failed to write private key, error is: %s", err)
+		}
+
+		pubGen := newRSA.PublicKey()
 		if err := os.WriteFile(pubKey, []byte(pubGen), 0644); err != nil {
-			log.Fatalf("Can't write public key, error is: %s", err)
+			log.Fatalf("failed to write public key, error is: %s", err)
 		}
 		return
 	}
