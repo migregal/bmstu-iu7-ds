@@ -6,111 +6,70 @@ import (
 )
 
 var (
-	rsa   *RSA
 	split = "\xff\xfe\xff"
 )
 
-func Init() (err error) {
-	rsa, err = New(0)
-	return
-}
-
-func Encrypt(bs []byte, pub *PublicKey) (c []byte) {
-	return rsa.Encrypt(bs, pub)
-}
-
-func Decrypt(be []byte, pri *PrivateKey) (bs []byte) {
-	return rsa.Decrypt(be, pri)
-}
-
-type RSA struct {
-	p uint64
-	q uint64
-	o uint64
-
-	N uint64
-	E uint64
-	D uint64
-
-	pub PublicKey
-	pri PrivateKey
-}
-
-func New(N uint64) (*RSA, error) {
+func New(N uint64) (*PrivateKey, error) {
 	p, q, err := generate2PrimeNumbers(N)
 	if err != nil {
 		return nil, err
 	}
 
-	n := p * q
-	fi := euler(p, q)
-	rsa := &RSA{p: p, q: q, o: fi, N: n}
+	var key PrivateKey
+	key.N = p * q
 
-	tps := sieve(rsa.o)
+	fi := euler(p, q)
+
+	tps := sieve(fi)
 	tpsm := make(map[uint64]struct{}, len(tps))
 	for _, t := range tps {
 		tpsm[t] = struct{}{}
 	}
 	for t := range tpsm {
 		if gcd(t, p-1) == 1 && gcd(t, q-1) == 1 {
-			rsa.E = t
+			key.E = t
 			break
 		}
 	}
 
-	for i := rsa.o / rsa.E; i < rsa.o; i++ {
-		if rsa.E*i%rsa.o == 1 {
-			rsa.D = i
+	for i := fi / key.E; i < fi; i++ {
+		if key.E*i%fi == 1 {
+			key.D = i
 			break
 		}
 	}
 
-	rsa.pub = PublicKey{N: rsa.N, E: rsa.E}
-	rsa.pri = PrivateKey{N: rsa.N, D: rsa.D}
-
-	return rsa, nil
+	return &key, nil
 }
 
-func (r RSA) Encrypt(bs []byte, pub *PublicKey) (be []byte) {
-	e, n := r.E, r.N
-	if pub != nil && pub.Check() == nil {
-		e = pub.E
-		n = pub.N
+func Encrypt(bs []byte, key *PublicKey) (be []byte) {
+	if key == nil || key.Check() != nil {
+		return nil
 	}
 
 	bet := make([]string, 0)
 	for _, b := range bs {
 		m := new(big.Int).SetBytes([]byte{b})
-		c := new(big.Int).Exp(m, big.NewInt(int64(e)), big.NewInt(int64(n)))
+		c := new(big.Int).Exp(m, big.NewInt(int64(key.E)), big.NewInt(int64(key.N)))
 		bet = append(bet, string(c.Bytes()))
 	}
 
 	return []byte(strings.Join(bet, split))
 }
 
-func (r RSA) Decrypt(be []byte, pri *PrivateKey) (bs []byte) {
-	d, n := r.D, r.N
-	if pri != nil && pri.Check() == nil {
-		d = pri.D
-		n = pri.N
+func Decrypt(be []byte, key *PrivateKey) (bs []byte) {
+	if key == nil || key.Check() != nil {
+		return nil
 	}
 
 	bs = make([]byte, 0)
 	for _, b := range strings.Split(string(be), split) {
 		c := new(big.Int).SetBytes([]byte(b))
-		m := new(big.Int).Exp(c, big.NewInt(int64(d)), big.NewInt(int64(n)))
+		m := new(big.Int).Exp(c, big.NewInt(int64(key.D)), big.NewInt(int64(key.N)))
 		bs = append(bs, m.Bytes()[0])
 	}
 
 	return bs
-}
-
-func (r RSA) PublicKey() string {
-	return r.pub.String()
-}
-
-func (r RSA) PrivateKey() string {
-	return r.pri.String()
 }
 
 func gcd(m, n uint64) uint64 {

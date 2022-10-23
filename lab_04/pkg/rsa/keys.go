@@ -3,12 +3,12 @@ package rsa
 import "fmt"
 
 type PrivateKey struct {
-	N uint64
+	PublicKey
 	D uint64
 }
 
 func NewPrivateKey(n, d uint64) *PrivateKey {
-	return &PrivateKey{n, d}
+	return &PrivateKey{PublicKey{N: n}, d}
 }
 
 func (p PrivateKey) String() string {

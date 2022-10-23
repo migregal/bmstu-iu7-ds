@@ -32,24 +32,22 @@ func main() {
 
 	rsa2.GenerateKey(rand.Reader, 2048)
 
-	rsa.Init()
-
 	if toGenerate && toDecrypt {
 		log.Fatalln("Can't generate and decrypt file at the same time")
 	}
 
 	if toGenerate {
-		newRSA, err := rsa.New(0)
+		key, err := rsa.New(0)
 		if err != nil {
 			log.Fatalf("failed to generate rsa: %s", err)
 		}
 
-		priGen := newRSA.PrivateKey()
+		priGen := key.String()
 		if err := os.WriteFile(priKey, []byte(priGen), 0644); err != nil {
 			log.Fatalf("failed to write private key, error is: %s", err)
 		}
 
-		pubGen := newRSA.PublicKey()
+		pubGen := key.PublicKey.String()
 		if err := os.WriteFile(pubKey, []byte(pubGen), 0644); err != nil {
 			log.Fatalf("failed to write public key, error is: %s", err)
 		}
