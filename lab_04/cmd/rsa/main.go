@@ -65,7 +65,10 @@ func main() {
 			log.Fatalf("can't parse private key, error is: %s", err)
 		}
 
-		decrypted := rsa.Decrypt(data, privateKey)
+		decrypted, err := rsa.Decrypt(data, privateKey)
+		if err != nil {
+			log.Fatalf("can't decrypt data, error is: %s", err)
+		}
 
 		if err := os.WriteFile(output, decrypted, 0644); err != nil {
 			log.Fatalf("can't write decrypted data, error is: %s", err)
@@ -83,7 +86,10 @@ func main() {
 		log.Fatalf("can't parse public key, error is: %s", err)
 	}
 
-	encrypted := rsa.Encrypt(data, publicKey)
+	encrypted, err := rsa.Encrypt(data, publicKey)
+	if err != nil {
+		log.Fatalf("can't encrypt data, error is: %s", err)
+	}
 
 	if err := os.WriteFile(output, encrypted, 0644); err != nil {
 		log.Fatalf("can't write encrypted data, error is: %s", err)

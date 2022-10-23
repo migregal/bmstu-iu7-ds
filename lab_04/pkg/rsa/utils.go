@@ -1,41 +1,23 @@
 package rsa
 
-import (
-	"fmt"
-	"time"
-)
+import "io"
 
-func generateN(N uint64) uint64 {
-	return uint64(time.Now().UnixNano()/1e6%(1000+int64(N)) + 13)
-}
-
-func generate2PrimeNumbers(N uint64) (p, q uint64, err error) {
-	n := generateN(N)
-
-	ps := sieve(n)
-
-	l := len(ps)
-	if l == 0 {
-		return 0, 0, fmt.Errorf("l is 0, n=%d", n)
+// nonZeroRandomBytes fills the given slice with non-zero random octets.
+func nonZeroRandomBytes(s []byte, random io.Reader) (err error) {
+	_, err = io.ReadFull(random, s)
+	if err != nil {
+		return
 	}
 
-	psm := make(map[uint64]struct{}, l)
-	for _, v := range ps {
-		psm[v] = struct{}{}
-	}
-
-	for k := range psm {
-		if k < 5 {
-			continue
+	for i := 0; i < len(s); i++ {
+		for s[i] == 0 {
+			_, err = io.ReadFull(random, s[i:i+1])
+			if err != nil {
+				return
+			}
+			s[i] ^= 0x42
 		}
-		p = k
-	}
-	for k := range psm {
-		if k < 5 || k == p {
-			continue
-		}
-		q = k
 	}
 
-	return p, q, nil
+	return
 }
