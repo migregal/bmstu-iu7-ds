@@ -11,13 +11,15 @@ import (
 )
 
 var (
-	file, output, priKey, pubKey     string
-	toDecrypt, toGenerate bool
+	file, output, priKey, pubKey string
+	toDecrypt, toGenerate        bool
+	keySize                      uint
 )
 
 func init() {
 	flag.BoolVar(&toDecrypt, "d", false, "decrypt file")
 	flag.BoolVar(&toGenerate, "g", false, "generate keys")
+	flag.UintVar(&keySize, "s", 128, "key size in bytes")
 	flag.StringVar(&file, "f", "Makefile", "file to perform operation on")
 	flag.StringVar(&output, "o", "rsaed", "file to store result")
 	flag.StringVar(&priKey, "pri", "key_rsa", "private key")
@@ -32,7 +34,7 @@ func main() {
 	}
 
 	if toGenerate {
-		key, err := rsa.New(rand.Reader, 2048)
+		key, err := rsa.New(rand.Reader, int(keySize*8))
 		if err != nil {
 			log.Fatalf("failed to generate rsa: %s", err)
 		}
