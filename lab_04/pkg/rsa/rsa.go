@@ -12,24 +12,28 @@ func New(rnd io.Reader, bits int) (*PrivateKey, error) {
 	var key PrivateKey
 	key.E = 65537
 
-	var err error
-
 	for {
 		// N = p * q
-		key.N = new(big.Int).SetInt64(1)
-		for i := 0; i < 2; i++ {
-			var tmp *big.Int
-			tmp, err = rand.Prime(rnd, bits/(2-i))
-			if err != nil {
-				return nil, err
-			}
+		p, err := rand.Prime(rnd, bits/2)
+		if err != nil {
+			return nil, err
+		}
+		q, err := rand.Prime(rnd, (bits - p.BitLen()))
+		if err != nil {
+			return nil, err
+		}
 
-			key.primes = append(key.primes, tmp)
-			key.N = key.N.Mul(key.N, tmp)
+		if p.Cmp(q) == 0 {
+			continue
+		}
+
+		key.N = new(big.Int).Mul(p, q)
+		if key.N.BitLen() != bits {
+			continue
 		}
 
 		// fi = (p - 1) * (q - 1)
-		fi := euler(key.primes)
+		fi := euler(p, q)
 
 		key.D = new(big.Int)
 		e := big.NewInt(int64(key.E))
