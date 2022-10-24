@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"log"
 	"os"
@@ -51,10 +52,22 @@ func main() {
 		return
 	}
 
-	data, err := os.ReadFile(file)
+	fin, err := os.Open(file)
 	if err != nil {
 		log.Fatalf("can't open file, error is: %s", err)
 	}
+	defer fin.Close()
+
+	in := bufio.NewReader(fin)
+
+	fout, err := os.Create(output)
+	if err != nil {
+		log.Fatalf("can't open file, error is: %s", err)
+	}
+	defer fout.Close()
+
+	out := bufio.NewWriter(fout)
+	defer out.Flush()
 
 	if toDecrypt {
 		priFile, err := os.ReadFile(priKey)
@@ -67,14 +80,11 @@ func main() {
 			log.Fatalf("can't parse private key, error is: %s", err)
 		}
 
-		decrypted, err := rsa.Decrypt(data, privateKey)
+		err = rsa.Decrypt(privateKey, in, out)
 		if err != nil {
 			log.Fatalf("can't decrypt data, error is: %s", err)
 		}
 
-		if err := os.WriteFile(output, decrypted, 0644); err != nil {
-			log.Fatalf("can't write decrypted data, error is: %s", err)
-		}
 		return
 	}
 
@@ -88,12 +98,8 @@ func main() {
 		log.Fatalf("can't parse public key, error is: %s", err)
 	}
 
-	encrypted, err := rsa.Encrypt(data, publicKey)
+	err = rsa.Encrypt(publicKey, in, out)
 	if err != nil {
 		log.Fatalf("can't encrypt data, error is: %s", err)
-	}
-
-	if err := os.WriteFile(output, encrypted, 0644); err != nil {
-		log.Fatalf("can't write encrypted data, error is: %s", err)
 	}
 }
