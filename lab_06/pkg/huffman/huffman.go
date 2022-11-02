@@ -4,8 +4,8 @@ import (
 	"errors"
 )
 
-func NewHuffmanTree(data []byte) *Tree {
-	huffmanTable := NewTable(data)
+func NewTree(data []byte) *Tree {
+	huffmanTable := newTable(data)
 	var j *Node
 	i := 0
 
@@ -16,7 +16,7 @@ func NewHuffmanTree(data []byte) *Tree {
 		secondSmallestNode := huffmanTable.GetSmallestNode()
 		delete(huffmanTable.Table, secondSmallestNode.value)
 
-		j = JoinNodes(firstSmallestNode, secondSmallestNode, byte(i))
+		j = joinNodes(firstSmallestNode, secondSmallestNode, byte(i))
 		i++
 		huffmanTable.Table[j.value] = j
 	}

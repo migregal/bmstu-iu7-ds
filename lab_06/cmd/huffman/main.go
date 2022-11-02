@@ -26,7 +26,7 @@ func main() {
 		log.Fatalf("Can't open file, error is: %s", err)
 	}
 
-	tree := huffman.NewHuffmanTree(data)
+	tree := huffman.NewTree(data)
 	var compressed []byte
 	if err := tree.Compress(&compressed); err != nil {
 		log.Fatalf("Failed to compress, error is: %s", err)

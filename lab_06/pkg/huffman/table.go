@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-func NewTable(data []byte) *Table {
+func newTable(data []byte) *Table {
 	table := make(map[byte]*Node)
 	for _, b := range data {
 		if _, ok := table[b]; !ok {
@@ -16,7 +16,7 @@ func NewTable(data []byte) *Table {
 	return &Table{Table: table}
 }
 
-func JoinNodes(firstNode, secondNode *Node, label byte) *Node {
+func joinNodes(firstNode, secondNode *Node, label byte) *Node {
 	return &Node{
 		Left:   firstNode,
 		Right:  secondNode,
